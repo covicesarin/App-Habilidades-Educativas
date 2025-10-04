@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>App de Habilidades Educativas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-d+5Vljcq/J+9rEbF+N8G6FlJmA8A4U+3G6zB+Wl0i6U9gJx7bEwGv7TbT6v9OmN6dqzvH1r5fM+kxR0a8sN4Gw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f9; color: #000; transition: background 0.3s, color 0.3s; }
+    body.dark { background: #121212; color: #e0e0e0; }
+    h1 { color: inherit; }
+    .container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; transition: background 0.3s, color 0.3s; }
+    body.dark .container { background: #1e1e1e; color: #e0e0e0; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    textarea, select, input { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; background: #fff; color: #000; transition: background 0.3s, color 0.3s; }
+    body.dark textarea, body.dark select, body.dark input { background: #2c2c2c; color: #e0e0e0; border: 1px solid #555; }
+    button { margin-top: 15px; padding: 10px 15px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .results { margin-top: 20px; padding: 15px; background: #e9f5ff; border-radius: 8px; transition: background 0.3s, color 0.3s; }
+    body.dark .results { background: #2c2c2c; color: #e0e0e0; }
+    ul { margin: 0; padding-left: 20px; }
+    .export-btns button { background: #28a745; margin-right: 10px; }
+    .export-btns button:hover { background: #1e7e34; }
+    .theme-switch { margin-top: 15px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .theme-switch i { transition: color 0.3s; }
+    .autor { position: fixed; bottom: 10px; right: 10px; font-size: 12px; color: #555; }
+    body.dark .autor { color: #aaa; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Descubre tus Habilidades Educativas Clave</h1>
+    <p>Introduce tu nombre (opcional), puesto, funciones principales y nivel de experiencia. La app te mostrará las habilidades que deberías fortalecer.</p>
+
+    <label for="usuario">Nombre del usuario (opcional)</label>
+    <input type="text" id="usuario" placeholder="Ej. Juan Pérez">
+
+    <label for="puesto">Puesto</label>
+    <input type="text" id="puesto" placeholder="Ej. Analista de datos">
+
+    <label for="funciones">Funciones principales</label>
+    <textarea id="funciones" rows="4" placeholder="Ej. Analizar información, crear reportes, comunicar hallazgos"></textarea>
+
+    <label for="nivel">Nivel de experiencia</label>
+    <select id="nivel">
+      <option value="junior">Junior</option>
+      <option value="intermedio">Intermedio</option>
+      <option value="senior">Senior</option>
+    </select>
+
+    <button onclick="analizar()">Analizar y sugerir</button>
+
+    <div class="theme-switch" onclick="toggleTheme()">
+      <i id="themeIcon" class="fa-regular fa-sun"></i>
+      <span id="themeLabel">Modo claro</span>
+    </div>
+
+    <div id="resultados" class="results" style="display:none;"></div>
+
+    <div class="export-btns" style="display:none;" id="exportBtns">
+      <button onclick="copiarResultados()">Copiar</button>
+      <button onclick="descargarJSON()">Descargar JSON</button>
+      <button onclick="generarPDF()">Descargar PDF</button>
+    </div>
+  </div>
+
+  <div class="autor">AUTOR: CESAR OLIVARES</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    function toggleTheme() {
+      const body = document.body;
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      body.classList.toggle('dark');
+      if(body.classList.contains('dark')) {
+        icon.className = 'fa-regular fa-moon';
+        label.textContent = 'Modo oscuro';
+      } else {
+        icon.className = 'fa-regular fa-sun';
+        label.textContent = 'Modo claro';
+      }
+    }
+
+    function analizar() {
+      const usuario = document.getElementById("usuario").value.trim();
+      const puesto = document.getElementById("puesto").value.trim();
+      const funciones = document.getElementById("funciones").value.trim();
+      const nivel = document.getElementById("nivel").value;
+
+      if (!puesto || !funciones) {
+        alert("Por favor llena todos los campos obligatorios.");
+        return;
+      }
+
+      const habilidades = sugerirHabilidades(puesto, funciones, nivel);
+
+      let saludo = usuario ? `Hola, ${usuario}!` : '';
+
+      let html = saludo ? `<h2>${saludo}</h2>` : '';
+      html += `<h2>Resultados para ${puesto}</h2>`;
+      html += `<h3>Habilidades sugeridas</h3><ul>`;
+      habilidades.forEach(h => html += `<li>${h}</li>`);
+      html += `</ul>`;
+
+      html += `<h3>Dónde aprender</h3><p>Explora plataformas confiables en español e inglés, como:</p>`;
+      html += `<ul>
+        <li>Coursera</li>
+        <li>edX</li>
+        <li>Udemy</li>
+        <li>LinkedIn Learning</li>
+        <li>Khan Academy</li>
+      </ul>`;
+
+      html += `<h3>Pasos prácticos</h3>
+        <ul>
+          <li>Dedica al menos 3 horas por semana al aprendizaje.</li>
+          <li>Combina teoría con práctica en tu trabajo diario.</li>
+          <li>Evalúa tu progreso cada 2 meses.</li>
+        </ul>`;
+
+      document.getElementById("resultados").innerHTML = html;
+      document.getElementById("resultados").style.display = "block";
+      document.getElementById("exportBtns").style.display = "block";
+    }
+
+    function sugerirHabilidades(puesto, funciones, nivel) {
+      const lista = [];
+      const texto = (puesto + " " + funciones).toLowerCase();
+
+      if (texto.includes("datos")) {
+        lista.push("Análisis de datos", "Estadística aplicada", "Uso de Excel y SQL", "Visualización de datos");
+      }
+      if (texto.includes("docente") || texto.includes("profesor")) {
+        lista.push("Planificación educativa", "Evaluación del aprendizaje", "Competencias digitales", "Didáctica innovadora");
+      }
+      if (texto.includes("proyecto") || texto.includes("gestión")) {
+        lista.push("Gestión de proyectos", "Liderazgo de equipos", "Comunicación efectiva", "Resolución de problemas");
+      }
+
+      if (nivel === "junior") lista.push("Organización personal", "Gestión del tiempo");
+      if (nivel === "intermedio") lista.push("Pensamiento crítico", "Negociación");
+      if (nivel === "senior") lista.push("Mentoría", "Gestión estratégica");
+
+      return [...new Set(lista)];
+    }
+
+    function copiarResultados() {
+      const contenido = document.getElementById("resultados").innerText;
+      navigator.clipboard.writeText(contenido);
+      alert("Resultados copiados al portapapeles.");
+    }
+
+    function descargarJSON() {
+      const contenido = document.getElementById("resultados").innerText;
+      const blob = new Blob([JSON.stringify({ resultados: contenido }, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "resultados.json";
+      a.click();
+    }
+
+    function generarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Reporte de Habilidades Educativas", 10, 10);
+      doc.text(document.getElementById("resultados").innerText, 10, 20);
+      doc.save("habilidades.pdf");
+    }
+  </script>
+</body>
+</html>
